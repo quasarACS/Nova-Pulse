@@ -2,6 +2,7 @@
   "name": "Nova Pulse",
   "short_name": "Nova",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#16161e",
   "theme_color": "#16161e",
