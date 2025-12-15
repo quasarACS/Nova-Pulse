@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nova Pulse</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#16161e">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@500&display=swap');
+
+        :root {
+            --bg-body: #0a0a12;
+            --card-bg: #16161e;
+            --input-bg: #22222b;
+            --primary: #6c5ce7;
+            --primary-grad: linear-gradient(135deg, #6c5ce7, #00cec9);
+            --text-main: #ffffff;
+            --text-muted: #8890a0;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --info: #48dbfb;
+            --danger-grad: linear-gradient(135deg, #ff7675, #d63031);
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; 
+        }
+
+        /* CONTENEDOR APP */
+        .nova-app {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 420px;
+            height: 100dvh; 
+            margin: 0 auto;
+            border-radius: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @media (min-width: 500px) {
+            .nova-app {
+                height: 95vh;
+                max-height: 850px;
+                margin: 20px;
+                border-radius: 35px;
+                border: 2px solid rgba(255,255,255,0.03);
+                box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+            }
+        }
+
+        /* PANTALLAS (Views) */
+        .screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            padding: 25px; box-sizing: border-box;
+            display: flex; flex-direction: column;
+            overflow-y: auto; scroll-behavior: smooth;
+            transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.4s ease;
+        }
+        .screen::-webkit-scrollbar { width: 0; }
+
+        .screen.active { transform: translateX(0); opacity: 1; z-index: 2; }
+        .screen.hidden-left { transform: translateX(-100%); opacity: 0; z-index: 1; }
+        .screen.hidden-right { transform: translateX(100%); opacity: 0; z-index: 1; }
+
+        header { text-align: center; margin-bottom: 15px; margin-top: 5px; flex-shrink: 0; }
+        h1 {
+            margin: 0; font-size: 1.8rem; font-weight: 800;
+            background: var(--primary-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .subtitle { font-size: 0.8rem; color: var(--text-muted); }
+
+        /* BANNER VENEZUELA */
+        .venezuela-banner {
+            width: 85%; max-width: 300px; height: 28px;
+            margin: 0 auto 8px auto; border-radius: 50px;
+            background: linear-gradient(to bottom, #f1c40f 33.33%, #003366 33.33%, #003366 66.66%, #c0392b 66.66%);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            display: flex; justify-content: center; align-items: center; position: relative;
+        }
+        .stars-row {
+            color: white; font-size: 10px; letter-spacing: 4px; margin-top: -1px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8); position: absolute; top: 34%;
+        }
+        .author-link {
+            display: block; text-align: center; font-size: 0.75rem; color: #888;
+            text-decoration: none; font-weight: 700; margin-bottom: 20px; transition: 0.3s;
+        }
+        .author-link:hover { color: var(--primary); text-shadow: 0 0 10px rgba(108, 92, 231, 0.5); }
+
+        /* BOTÓN AYUDA (MINI) */
+        .help-btn-mini {
+            position: absolute; top: 25px; right: 25px;
+            background: rgba(255,255,255,0.1); border: none; color: white;
+            width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+            font-weight: 800; font-size: 1rem; display: flex; align-items: center; justify-content: center;
+            transition: 0.2s; z-index: 10;
+        }
+        .help-btn-mini:hover { background: var(--primary); transform: scale(1.1); }
+
+        /* NAVBAR FLOTANTE */
+        .tabs-container {
+            display: flex; gap: 10px; margin-bottom: 25px; flex-shrink: 0;
+            overflow-x: auto; padding: 5px; background: transparent;
+        }
+        .tabs-container::-webkit-scrollbar { display: none; }
+
+        .tab-btn {
+            flex: 1; padding: 10px 15px; border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.03); color: #888; border-radius: 50px;
+            font-weight: 700; cursor: pointer; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
+            font-size: 0.75rem; text-transform: uppercase; white-space: nowrap; 
+            display: flex; align-items: center; justify-content: center; gap: 6px;
+        }
+        .tab-btn.active { 
+            background: var(--primary-grad); color: white; border-color: transparent;
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4); transform: translateY(-2px);
+        }
+        .tab-btn:hover:not(.active) { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.3); color: white; }
+
+        /* HERRAMIENTAS DE PRIVACIDAD */
+        .tools-bar {
+            display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 10px;
+        }
+        .tool-btn {
+            background: rgba(255,255,255,0.05); border: none; color: #888;
+            padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.75rem;
+            transition: 0.2s; display: flex; align-items: center; gap: 5px; font-weight: 700;
+        }
+        .tool-btn:hover { background: rgba(255,255,255,0.15); color: white; }
+        .tool-btn.active { color: var(--primary); background: rgba(108, 92, 231, 0.15); }
+        
+        /* Clase especial para ocultar textarea */
+        .obscured { 
+            -webkit-text-security: disc; /* Funciona en Chrome/Android */
+            filter: blur(4px); /* Fallback visual */
+            transition: 0.2s;
+        }
+        .obscured:focus { filter: none; } /* Al escribir se ve */
+
+        /* CONFIGURACIÓN */
+        .config-section {
+            background: rgba(255,255,255,0.03);
+            border-radius: 20px; padding: 15px 20px; margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.05); flex-shrink: 0; text-align: center;
+        }
+        .slider-row { display: flex; align-items: center; justify-content: space-between; gap: 10px;}
+        input[type=range] { flex-grow: 1; height: 6px; background: #444; border-radius: 5px; outline: none; -webkit-appearance: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; background: #00cec9; border-radius: 50%; cursor: pointer; }
+        .len-badge { background: var(--primary); color: white; padding: 4px 10px; border-radius: 10px; font-weight: bold; font-size: 0.85rem; min-width: 25px;}
+
+        /* FORMULARIOS */
+        .form-list { display: flex; flex-direction: column; gap: 15px; padding-bottom: 40px; }
+        .form-group { display: flex; flex-direction: column; gap: 8px; }
+        .form-label { font-size: 0.85rem; color: var(--text-muted); font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        
+        .form-input {
+            width: 100%; background: var(--input-bg); border: 2px solid transparent;
+            padding: 16px; border-radius: 16px; color: white; font-family: 'Nunito', sans-serif; font-size: 1rem;
+            box-sizing: border-box; transition: 0.3s;
+        }
+        .form-input:focus { outline: none; border-color: var(--primary); background: #2a2a35; }
+
+        .phrase-area {
+            width: 100%; background: var(--input-bg); border: 2px solid transparent; border-radius: 16px;
+            padding: 18px; color: white; font-family: 'Nunito', sans-serif; font-size: 1.1rem; resize: none;
+            box-sizing: border-box; height: 140px; transition: 0.3s; line-height: 1.5;
+        }
+        .phrase-area:focus { outline: none; border-color: var(--primary); background: #2a2a35; }
+
+        /* BOTONES */
+        .fab-container { margin-top: 25px; }
+        .action-btn {
+            width: 100%; padding: 18px; border: none; border-radius: 20px;
+            background: var(--primary-grad); color: white; font-size: 1.1rem; font-weight: 800;
+            cursor: pointer; box-shadow: 0 10px 30px rgba(108, 92, 231, 0.4);
+            text-transform: uppercase; letter-spacing: 1px; transition: transform 0.2s;
+        }
+        .vt-btn { background: var(--danger-grad); box-shadow: 0 10px 30px rgba(214, 48, 49, 0.4); }
+        .action-btn:active { transform: scale(0.96); }
+
+        /* RESULTADOS */
+        .result-card {
+            background: rgba(255, 255, 255, 0.05); padding: 18px; border-radius: 18px; 
+            margin-bottom: 12px; cursor: pointer; border-left: 5px solid #555; transition: all 0.2s;
+        }
+        .result-card:active { transform: scale(0.98); background: rgba(255, 255, 255, 0.1); }
+
+        .card-pin { border-left-color: var(--warning); }
+        .card-social { border-left-color: var(--primary); }
+        .card-wifi { border-left-color: var(--info); }
+        .card-bank { border-left-color: var(--success); }
+        .card-master { border-left-color: #ffffff !important; }
+
+        .res-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .res-title { font-size: 0.75rem; text-transform: uppercase; font-weight: 900; letter-spacing: 1px; color: #ddd; }
+        .res-icon { font-size: 1.1rem; }
+
+        .pass-value { 
+            font-family: 'Fira Code', monospace; font-size: 1.2rem; word-break: break-all; color: #fff; 
+            background: rgba(0,0,0,0.3); padding: 10px; border-radius: 10px; display: block;
+        }
+        .pass-hint { font-size: 0.7rem; color: #777; margin-top: 5px; font-style: italic; }
+
+        /* FAQ */
+        .faq-container { display: flex; flex-direction: column; gap: 10px; padding-bottom: 20px; }
+        .faq-item {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 12px; overflow: hidden; transition: 0.3s;
+        }
+        .faq-header {
+            padding: 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; min-height: auto; 
+        }
+        .faq-header span:first-child {
+            font-size: 0.9rem; font-weight: 700; color: #eee; display: flex; align-items: center; gap: 12px; flex: 1; padding-right: 10px;
+        }
+        .faq-icon { transition: transform 0.3s ease; font-size: 0.8rem; color: #888; flex-shrink: 0; }
+        .faq-body { 
+            max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out, opacity 0.3s; background: rgba(0,0,0,0.2); opacity: 0;
+        }
+        .faq-content { 
+            padding: 15px; font-size: 0.9rem; color: #ccc; line-height: 1.5; border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .faq-item.open .faq-body { max-height: 1000px; opacity: 1; }
+        .faq-item.open .faq-icon { transform: rotate(180deg); color: white; }
+        .faq-item.open { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.1); }
+
+        /* Tip Box */
+        .tip-box {
+            background: linear-gradient(135deg, rgba(108, 92, 231, 0.1), rgba(0, 206, 201, 0.05));
+            border-left: 4px solid var(--info); padding: 15px; border-radius: 12px; margin-bottom: 10px;
+        }
+        .tip-title { font-size: 0.85rem; font-weight: 800; color: var(--info); margin-bottom: 5px; display: block; }
+        .tip-text { font-size: 0.8rem; color: #ccc; }
+
+        /* Toast */
+        .toast {
+            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+            background: var(--success); color: #000; padding: 10px 25px; border-radius: 30px;
+            font-weight: bold; font-size: 0.9rem; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 20;
+        }
+    </style>
+</head>
+<body>
+
+<div class="nova-app">
+    
+    <div id="screenHome" class="screen active">
+        <button class="help-btn-mini" onclick="goToHelp()">?</button>
+
+        <header>
+            <h1>Nova Pulse</h1>
+            <div class="subtitle">Protege tu mundo digital con inteligencia</div>
+        </header>
+
+        <div class="venezuela-banner">
+            <span class="stars-row">★★★★★★★</span>
+        </div>
+        <a href="https://t.me/Emanrique0" target="_blank" class="author-link">
+            Hecho por Erick Manrique, contáctame por Telegram
+        </a>
+
+        <div class="tabs-container">
+            <button id="tabMulti" class="tab-btn active" onclick="switchTab('multi')">🧩 Formulario</button>
+            <button id="tabPhrase" class="tab-btn" onclick="switchTab('phrase')">🗣️ Frase</button>
+            <button id="tabScanner" class="tab-btn" onclick="switchTab('scanner')">🛡️ Escaneo</button>
+        </div>
+
+        <div id="modeMulti" class="form-list">
+            
+            <div class="tools-bar">
+                <button class="tool-btn" onclick="togglePrivacy()" id="eyeBtn1">
+                    👁️ <span style="font-size:0.7rem">Ocultar</span>
+                </button>
+                <button class="tool-btn" onclick="clearInputs()">
+                    🗑️ <span style="font-size:0.7rem">Limpiar</span>
+                </button>
+            </div>
+
+            <div class="config-section">
+                <div class="slider-row">
+                    <span style="font-size:0.8rem; font-weight:bold; color:#aaa;">Cantidad de Caracteres:</span>
+                    <input type="range" id="sliderLen" min="12" max="32" value="20" step="1" oninput="updateLen(this.value)">
+                    <span class="len-badge" id="lenDisplay">20</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">🎵 Frases, peliculas, historias (base)</label>
+                <input type="text" id="q1" class="form-input" placeholder="Ej: Interestelar, Venezuela, Netflix">
+            </div>
+            <div class="form-group">
+                <label class="form-label">🍀 Número de preferencia</label>
+                <input type="number" id="q2" class="form-input" placeholder="Ej: 7, 11, 26">
+            </div>
+            <div class="form-group">
+                <label class="form-label">🗝️ Elemento Visual (Forma/Objeto)</label>
+                <input type="text" id="q3" class="form-input" placeholder="Ej: Azul, Taza, perro...">
+            </div>
+            <div class="fab-container">
+                <button class="action-btn" onclick="generarMultiPass()">Generar codigos</button>
+            </div>
+        </div>
+
+        <div id="modePhrase" class="form-list" style="display: none;">
+            
+            <div class="tools-bar">
+                <button class="tool-btn" onclick="togglePrivacy()" id="eyeBtn2">
+                    👁️ <span style="font-size:0.7rem">Ocultar</span>
+                </button>
+                <button class="tool-btn" onclick="clearInputs()">
+                    🗑️ <span style="font-size:0.7rem">Limpiar</span>
+                </button>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" style="justify-content: center; margin-bottom: 20px;">
+                    📝 Escribe una oracion segura
+                </label>
+                <textarea id="phraseInput" class="phrase-area" placeholder="Ej: tengo un perro en mi casa y tiene 4 años.."></textarea>
+                <span class="pass-hint" style="text-align: center;">Convertiremos tus palabras en una llave criptográfica única.</span>
+            </div>
+            <div class="fab-container">
+                <button class="action-btn" onclick="generarDesdeFrase()">Crear Llave Maestra</button>
+            </div>
+        </div>
+
+        <div id="modeScanner" class="form-list" style="display: none;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h3 style="color: #ff7675; margin-bottom: 5px;">Detector de Amenazas</h3>
+                <p style="font-size: 0.8rem; color: #aaa;">Consulta la base de datos global de VirusTotal.</p>
+            </div>
+            <div class="form-group">
+                <label class="form-label">🔗 Pega el enlace sospechoso</label>
+                <input type="text" id="urlInput" class="form-input" placeholder="Ej: www.oferta-increible.com">
+            </div>
+            <div class="tip-box" style="background: rgba(214, 48, 49, 0.1); border-left-color: #d63031;">
+                <span class="tip-title" style="color:#ff7675;">🔒 Información importante</span>
+                <span class="tip-text">Al enviarnos el enlace sospechoso y presionar ‘Enviar analisis’, seras redirigido a VirusTotal. Nos aseguramos que el proceso sea gratuito y seguro.</span>
+            </div>
+            <div class="fab-container">
+                <button class="action-btn vt-btn" onclick="lanzarVirusTotal()">🔍 Enviar analisis</button>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="screenResults" class="screen hidden-right">
+        <header>
+            <h2 id="resTitle" style="margin: 0; color: white;">Claves Generadas</h2>
+            <p id="resSubtitle" class="subtitle">Tus credenciales seguras</p>
+        </header>
+        
+        <div class="result-card card-pin" id="cardPIN" onclick="copiar(this, 'passPIN')">
+            <div class="res-header">
+                <span class="res-title" style="color:var(--warning)">💳 PIN Numérico</span>
+                <span class="res-icon">🔢</span>
+            </div>
+            <span class="pass-value" id="passPIN">----</span>
+            <div class="pass-hint">ideal para reemplazar tus claves de cajero automatico.</div>
+        </div>
+
+        <div class="result-card card-social" id="cardSocial" onclick="copiar(this, 'passSocial')">
+            <div class="res-header">
+                <span class="res-title" style="color:var(--primary)">📱 Redes Sociales</span>
+                <span class="res-icon">💬</span>
+            </div>
+            <span class="pass-value" id="passSocial">---</span>
+            <div class="pass-hint">usa una diferente en cada cuenta social.</div>
+        </div>
+
+        <div class="result-card card-wifi" id="cardWifi" onclick="copiar(this, 'passWifi')">
+            <div class="res-header">
+                <span class="res-title" style="color:var(--info)">📡 Codigo Temporal</span>
+                <span class="res-icon">📶</span>
+            </div>
+            <span class="pass-value" id="passWifi">---</span>
+            <div class="pass-hint">Fácil de dictar, ideal para compartir contraseñas de 1 solo acceso.</div>
+        </div>
+
+        <div class="result-card card-bank" id="cardBank" onclick="copiar(this, 'passBank')">
+            <div class="res-header">
+                <span class="res-title" id="titleBank" style="color:var(--success)">🏦 Sugerencia para cuentas bancarias</span>
+                <span class="res-icon" id="iconBank">🛡️</span>
+            </div>
+            <span class="pass-value" id="passBank">---</span>
+            <div class="pass-hint" id="hintBank">Dificil de adivinar, ideal para cuentas bancarias.</div>
+        </div>
+
+        <div style="margin-top: auto; padding-bottom: 20px;">
+             <button class="action-btn" style="background: var(--input-bg); border: 2px solid #333; color: #aaa; box-shadow: none;" onclick="goHome()">Volver / Editar</button>
+        </div>
+    </div>
+
+    <div id="screenHelp" class="screen hidden-right">
+        <header>
+            <h2 style="margin: 0; color: white;">Centro de Ayuda</h2>
+            <p class="subtitle">Preguntas y Seguridad</p>
+        </header>
+
+        <h3 style="font-size:0.9rem; color:#666; margin: 20px 0 10px 0; text-transform:uppercase;">Preguntas Frecuentes</h3>
+        
+        <div class="faq-container">
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header"><span>¿Es seguro usar esto?</span><span class="faq-icon">▼</span></div>
+                <div class="faq-body"><div class="faq-content">
+                    Por supuesto. Nova utiliza entropía matemática local. Los caracteres son totalmente aleatorios y NUNCA se transmiten por internet.
+                </div></div>
+            </div>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header"><span>¿Es seguro VirusTotal?</span><span class="faq-icon">▼</span></div>
+                <div class="faq-body"><div class="faq-content">
+                    Sí, es seguro. VirusTotal es un servicio de Google que analiza archivos y enlaces usando múltiples motores antivirus.
+                </div></div>
+            </div>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header"><span>¿Se puede hackear mi clave?</span><span class="faq-icon">▼</span></div>
+                <div class="faq-body"><div class="faq-content">
+                    No. Las contraseñas creadas no se transmiten por internet. No guardamos datos, por lo que los hackers no pueden acceder a ellos.
+                </div></div>
+            </div>
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header"><span>¿Qué hace segura a mi clave?</span><span class="faq-icon">▼</span></div>
+                <div class="faq-body"><div class="faq-content">
+                    Una contraseña segura debe ser única y difícil de descifrar. Nova usa al menos 16 caracteres con letras, números y símbolos.
+                </div></div>
+            </div>
+        </div>
+
+        <h3 style="font-size:0.9rem; color:#666; margin: 20px 0 10px 0; text-transform:uppercase;">Consejos de Seguridad</h3>
+        
+        <div class="faq-container">
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header"><span>⚠️ Anti-Phishing</span><span class="faq-icon">▼</span></div>
+                <div class="faq-body"><div class="faq-content">
+                    Nunca compartas tus claves por WhatsApp, Telegram o correo. Ni siquiera con amigos o familiares.
+                </div></div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header"><span>📵 Cuidado con los QR</span><span class="faq-icon">▼</span></div>
+                <div class="faq-body"><div class="faq-content">
+                    No escanees códigos QR pegados en la calle o enviados por desconocidos. Pueden llevarte a páginas falsas.
+                </div></div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header"><span>🕵️‍♂️ Sospecha de lo bonito</span><span class="faq-icon">▼</span></div>
+                <div class="faq-body"><div class="faq-content">
+                    Si un enlace parece demasiado bueno para ser cierto… probablemente lo sea. No hagas clic sin verificar.
+                </div></div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header"><span>📲 Wi-Fi público</span><span class="faq-icon">▼</span></div>
+                <div class="faq-body"><div class="faq-content">
+                    Evita usar redes WIFI publicas para entrar al banco, son el lugar favorito de los atacantes para robar datos.
+                </div></div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header"><span>⛔ Cero datos personales</span><span class="faq-icon">▼</span></div>
+                <div class="faq-body"><div class="faq-content">
+                    Si dudas de una persona, no le entregues información sensible ni datos personales.
+                </div></div>
+            </div>
+            
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header"><span>🤝 Dispositivos Prestados</span><span class="faq-icon">▼</span></div>
+                <div class="faq-body"><div class="faq-content">
+                    No inicies sesión en equipos ajenos, ni porque te los presten un momento. Pueden guardar tus datos.
+                </div></div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header"><span>💡 Diversificación</span><span class="faq-icon">▼</span></div>
+                <div class="faq-body"><div class="faq-content">
+                    Nunca uses la misma contraseña para tu Banco y tu Red Social. Si hackean uno, caerán todos.
+                </div></div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header"><span>🔒 Doble seguridad</span><span class="faq-icon">▼</span></div>
+                <div class="faq-body"><div class="faq-content">
+                    Activa la verificación en dos pasos en todas tus cuentas. Es tu segunda línea de defensa.
+                </div></div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header"><span>🧬 Actualiza tu seguridad</span><span class="faq-icon">▼</span></div>
+                <div class="faq-body"><div class="faq-content">
+                    Mantén tu sistema operativo y aplicaciones actualizadas. Las actualizaciones corrigen vulnerabilidades.
+                </div></div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFaq(this)">
+                <div class="faq-header"><span>🧯 Respalda Todo</span><span class="faq-icon">▼</span></div>
+                <div class="faq-body"><div class="faq-content">
+                    Haz copias de seguridad de tus archivos importantes. Un ransomware no puede dañar lo que ya tienes respaldado.
+                </div></div>
+            </div>
+        </div>
+
+        <div style="margin-top: auto; padding-bottom: 20px;">
+             <button class="action-btn" style="background: var(--input-bg); border: 2px solid #333; color: #aaa; box-shadow: none;" onclick="goBackFromHelp()">Volver al Inicio</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toastMsg">¡Copiado! ✅</div>
+
+</div>
+
+<script>
+    let currentTab = 'multi';
+
+    function switchTab(mode) {
+        currentTab = mode;
+        document.getElementById('tabMulti').className = 'tab-btn';
+        document.getElementById('tabPhrase').className = 'tab-btn';
+        document.getElementById('tabScanner').className = 'tab-btn';
+        
+        if(mode === 'multi') document.getElementById('tabMulti').classList.add('active');
+        if(mode === 'phrase') document.getElementById('tabPhrase').classList.add('active');
+        if(mode === 'scanner') document.getElementById('tabScanner').classList.add('active');
+
+        document.getElementById('modeMulti').style.display = 'none';
+        document.getElementById('modePhrase').style.display = 'none';
+        document.getElementById('modeScanner').style.display = 'none';
+
+        if(mode === 'multi') document.getElementById('modeMulti').style.display = 'flex';
+        if(mode === 'phrase') document.getElementById('modePhrase').style.display = 'flex';
+        if(mode === 'scanner') document.getElementById('modeScanner').style.display = 'flex';
+    }
+
+    function goToHelp() {
+        document.getElementById('screenHome').classList.remove('active');
+        document.getElementById('screenHome').classList.add('hidden-left');
+        document.getElementById('screenHelp').classList.remove('hidden-right');
+        document.getElementById('screenHelp').classList.add('active');
+    }
+
+    function goBackFromHelp() {
+        document.getElementById('screenHelp').classList.remove('active');
+        document.getElementById('screenHelp').classList.add('hidden-right');
+        document.getElementById('screenHome').classList.remove('hidden-left');
+        document.getElementById('screenHome').classList.add('active');
+    }
+
+    function mostrarResultados() {
+        document.getElementById('screenHome').classList.remove('active');
+        document.getElementById('screenHome').classList.add('hidden-left');
+        document.getElementById('screenResults').classList.remove('hidden-right');
+        document.getElementById('screenResults').classList.add('active');
+    }
+
+    function goHome() {
+        document.getElementById('screenResults').classList.remove('active');
+        document.getElementById('screenResults').classList.add('hidden-right');
+        document.getElementById('screenHome').classList.remove('hidden-left');
+        document.getElementById('screenHome').classList.add('active');
+    }
+
+    function updateLen(val) { document.getElementById('lenDisplay').textContent = val; }
+    
+    const clean = (id) => {
+        const el = document.getElementById(id);
+        return el ? el.value.trim().replace(/\s/g, '') : "";
+    };
+    
+    const cap = (s) => {
+        if(!s) return "";
+        return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+    };
+
+    function toggleFaq(element) {
+        element.classList.toggle('open');
+    }
+
+    // --- HERRAMIENTAS DE PRIVACIDAD ---
+    let isHidden = false;
+
+    function togglePrivacy() {
+        isHidden = !isHidden;
+        const inputs = document.querySelectorAll('.form-input, .phrase-area');
+        const eyeBtn1 = document.getElementById('eyeBtn1');
+        const eyeBtn2 = document.getElementById('eyeBtn2');
+        
+        inputs.forEach(input => {
+            if(input.id !== 'urlInput') {
+                // Si es textarea, usamos clase css
+                if(input.tagName === 'TEXTAREA') {
+                    if(isHidden) input.classList.add('obscured');
+                    else input.classList.remove('obscured');
+                } else {
+                    // Si es input normal, cambiamos tipo
+                    input.type = isHidden ? "password" : "text";
+                }
+            }
+        });
+
+        const label = isHidden ? '🔒 <span style="font-size:0.7rem">Visible</span>' : '👁️ <span style="font-size:0.7rem">Ocultar</span>';
+        if(eyeBtn1) eyeBtn1.innerHTML = label;
+        if(eyeBtn2) eyeBtn2.innerHTML = label;
+    }
+
+    function clearInputs() {
+        if(confirm("¿Borrar todos los campos?")) {
+            document.querySelectorAll('input, textarea').forEach(el => el.value = '');
+        }
+    }
+
+    function generarMultiPass() {
+        const lenBank = parseInt(document.getElementById('sliderLen').value);
+        const q1 = clean('q1') || "Nova";
+        const q2 = clean('q2') || "7";
+        const q3 = clean('q3') || "Azul";
+
+        let pinSeed = parseInt(q2.replace(/\D/g,'')) || 7; 
+        let derivedNum = ((q1.length + q3.length) * 9).toString();
+        let fullPin = pinSeed + derivedNum;
+        if(fullPin.length < 4) fullPin += "2025"; 
+        fullPin = fullPin.substring(0, 6);
+        document.getElementById('passPIN').textContent = fullPin;
+
+        const syms = "!@#$%&*";
+        let sym = syms.charAt(q3.length % syms.length); 
+        let socialPass = cap(q1) + sym + q3.toLowerCase() + q2;
+        document.getElementById('passSocial').textContent = socialPass;
+
+        let wifiBase = cap(q3); 
+        let wifiNum = q2.replace(/\D/g,'') || "1";
+        let wifiPass = wifiBase + wifiNum;
+        while(wifiPass.length < 8) wifiPass += wifiNum;
+        document.getElementById('passWifi').textContent = wifiPass;
+
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+";
+        let seedString = q1 + q2 + q3; 
+        let bankPass = "";
+        let val = 0;
+        for(let i=0; i<seedString.length; i++) val += seedString.charCodeAt(i);
+        for(let i=0; i<lenBank; i++) {
+            val = (val * 9301 + 49297) % 233280;
+            let index = val % chars.length;
+            bankPass += chars.charAt(index);
+        }
+        document.getElementById('passBank').textContent = bankPass;
+
+        document.getElementById('resTitle').textContent = "Claves Generadas";
+        document.getElementById('resSubtitle').textContent = "Contraseñas seguras para cada necesidad";
+        document.getElementById('cardPIN').style.display = 'block';
+        document.getElementById('cardSocial').style.display = 'block';
+        document.getElementById('cardWifi').style.display = 'block';
+        
+        const cBank = document.getElementById('cardBank');
+        cBank.className = "result-card card-bank";
+        document.getElementById('titleBank').textContent = "🏦 BÓVEDA BANCARIA";
+        document.getElementById('titleBank').style.color = "var(--success)";
+        document.getElementById('iconBank').textContent = "🛡️";
+        document.getElementById('hintBank').textContent = "Dificil de adivinar, ideal para cuentas bancarias. (Usa sensor biometrico para reforzar)";
+
+        mostrarResultados();
+    }
+
+    function generarDesdeFrase() {
+        const input = document.getElementById('phraseInput').value.trim();
+        if (!input) { alert("⚠️ Escribe una frase primero."); return; }
+
+        const words = input.split(/\s+/);
+        let password = "";
+
+        words.forEach((w, index) => {
+            if (/\d/.test(w)) {
+                password += w.replace(/[.,;]/g, ''); 
+            } else {
+                let letter = w.charAt(0);
+                if (index < 2) letter = letter.toUpperCase();
+                else letter = letter.toLowerCase();
+                password += letter;
+            }
+        });
+        password += ".0"; 
+
+        document.getElementById('resTitle').textContent = "Llave Maestra";
+        document.getElementById('resSubtitle').textContent = "Método inteligente para optimizacion de frases.";
+        document.getElementById('cardPIN').style.display = 'none';
+        document.getElementById('cardSocial').style.display = 'none';
+        document.getElementById('cardWifi').style.display = 'none';
+
+        const cBank = document.getElementById('cardBank');
+        cBank.className = "result-card card-master"; 
+        document.getElementById('titleBank').textContent = "🔑 CLAVE ÚNICA";
+        document.getElementById('titleBank').style.color = "#fff";
+        document.getElementById('iconBank').textContent = "🧠";
+        document.getElementById('passBank').textContent = password;
+        document.getElementById('hintBank').textContent = "Generada desde tu frase. Memorable e imposible de adivinar.";
+
+        mostrarResultados();
+    }
+
+    function copiar(el, id) {
+        const txt = document.getElementById(id).textContent;
+        navigator.clipboard.writeText(txt).then(() => {
+            const t = document.getElementById('toastMsg');
+            t.style.opacity = '1';
+            el.style.background = 'rgba(255, 255, 255, 0.15)';
+            setTimeout(() => { t.style.opacity = '0'; el.style.background = ''; }, 1500);
+        });
+    }
+
+    function lanzarVirusTotal() {
+        let rawUrl = document.getElementById('urlInput').value.trim();
+        if(!rawUrl) { alert("⚠️ Pega un enlace primero."); return; }
+
+        let domainToSearch = rawUrl;
+        try {
+            let urlObj = new URL(rawUrl.startsWith('http') ? rawUrl : 'https://' + rawUrl);
+            domainToSearch = urlObj.hostname;
+        } catch (e) {
+            console.log("No se pudo extraer dominio, usando texto original");
+        }
+        let vtSearchUrl = "https://www.virustotal.com/gui/search/" + encodeURIComponent(domainToSearch);
+        window.open(vtSearchUrl, '_blank');
+    }
+    // --- REGISTRO DEL SERVICE WORKER (PWA) ---
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('Nova Pulse registrada:', reg.scope))
+                .catch(err => console.log('Error PWA:', err));
+        });
+    }
+</script>
+
+</body>
+</html>
